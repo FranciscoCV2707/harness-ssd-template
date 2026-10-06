@@ -168,9 +168,3 @@ Añade las skills reales del proyecto siguiendo ese patrón.
   demás en la plantilla es contenido real, listo para usar o adaptar.
 
 ---
-
-## Créditos
-
-Basado en el patrón de `betta-tech/harness-sdd` (GitHub) y consolidado a
-partir de la experiencia real en los proyectos `Sistema-Reservas` y
-`Tracker-Sales-OS`.
