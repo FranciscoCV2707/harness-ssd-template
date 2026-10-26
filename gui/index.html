@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Harness SDD Orchestrator</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+<style>
+  :root {
+    --bg:#0b1220; --panel:#111827; --card:#1f2937; --border:#374151;
+    --text:#e5e7eb; --muted:#9ca3af; --accent:#38bdf8; --accent2:#a78bfa;
+    --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+  }
+  * { box-sizing: border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; margin:0; padding:14px; background:var(--bg); color:var(--text); font-size:14px; }
+  h1 { margin:0 0 2px; font-size:24px; font-weight:800; letter-spacing:-.5px; }
+  .subtitle { color:var(--muted); font-size:13px; margin-bottom:12px; }
+  .tabs { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+  .tab { padding:9px 16px; cursor:pointer; background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:10px; font-weight:600; transition:all .15s; font-size:13px; }
+  .tab:hover { background:var(--card); border-color:var(--accent); }
+  .tab.active { background:var(--accent); color:#0b1220; border-color:var(--accent); }
+  .panel { display:none; }
+  .panel.active { display:block; }
+  .bar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+  button { padding:8px 14px; cursor:pointer; background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:8px; font-weight:600; transition:all .15s; font-size:13px; }
+  button:hover { background:var(--card); border-color:var(--accent); }
+  button.primary { background:var(--accent); color:#0b1220; border-color:var(--accent); }
+  button.primary:hover { background:#7dd3fc; }
+  button.success { background:var(--ok); color:#0b1220; border-color:var(--ok); }
+  button.danger { background:var(--danger); color:#fff; border-color:var(--danger); }
+  button.ghost { background:transparent; }
+  textarea, input, select { background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:8px; font-family:'Consolas',monospace; font-size:13px; }
+  textarea { width:100%; resize:vertical; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .card { background:var(--panel); padding:12px; border-radius:12px; margin-bottom:10px; border:1px solid var(--border); }
+  .card h3 { margin:0 0 8px; font-size:14px; color:var(--accent); font-weight:700; }
+  .term { height:260px; background:#060a14; border-radius:8px; border:1px solid var(--border); }
+  .terms-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .task { display:flex; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .task span { flex:1; font-size:13px; min-width:120px; }
+  .task .status { font-size:11px; padding:2px 8px; border-radius:4px; background:var(--card); color:var(--muted); }
+  .clis { font-size:12px; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; background:var(--panel); border-radius:8px; overflow:hidden; }
+  th,td { border:1px solid var(--border); padding:8px; text-align:left; font-size:13px; }
+  th { background:var(--card); color:var(--accent); font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+  tr.sel { background:#1e3a5f; }
+  tr:hover { background:var(--card); cursor:pointer; }
+  .help { background:var(--panel); padding:14px; border-radius:12px; margin-bottom:12px; border-left:4px solid var(--accent); font-size:13px; line-height:1.6; }
+  .help b { color:var(--accent); }
+  .help ol { margin:6px 0; padding-left:22px; }
+  .help li { margin:4px 0; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; background:var(--card); color:var(--muted); margin-right:4px; }
+  .wizard { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+  .step { background:var(--panel); padding:12px; border-radius:12px; border:1px solid var(--border); text-align:center; }
+  .step .num { display:inline-block; width:28px; height:28px; line-height:28px; border-radius:50%; background:var(--accent); color:#0b1220; font-weight:800; margin-bottom:6px; }
+  .step h4 { margin:4px 0 2px; font-size:13px; }
+  .step p { margin:0; font-size:11px; color:var(--muted); }
+  .skill-row { display:flex; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .skill-row .name { font-weight:700; color:var(--accent); min-width:160px; }
+  .skill-row .desc { flex:1; font-size:12px; color:var(--muted); min-width:180px; }
+  .skill-row .track { font-size:10px; padding:2px 6px; border-radius:4px; background:var(--card); color:var(--accent2); }
+  .tooltip { position:relative; display:inline-block; }
+  .tooltip .tip { visibility:hidden; opacity:0; position:absolute; bottom:125%; left:50%; transform:translateX(-50%); background:var(--card); color:var(--text); padding:6px 10px; border-radius:6px; font-size:11px; white-space:nowrap; border:1px solid var(--border); transition:opacity .2s; z-index:10; }
+  .tooltip:hover .tip { visibility:visible; opacity:1; }
+  .empty { text-align:center; padding:24px; color:var(--muted); font-size:13px; }
+  .search { width:100%; margin-bottom:8px; }
+  .agent-chip { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; background:var(--card); color:var(--accent2); margin:2px; cursor:pointer; }
+  .agent-chip.active { background:var(--accent2); color:#0b1220; }
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:100; }
+  .modal-backdrop.show { display:flex; }
+  .modal { background:var(--panel); padding:20px; border-radius:14px; max-width:520px; width:90%; border:1px solid var(--border); }
+  .modal h3 { margin:0 0 10px; color:var(--accent); }
+  .modal .bar { justify-content:flex-end; }
+  .progress-bar { height:6px; background:var(--card); border-radius:3px; overflow:hidden; margin:8px 0; }
+  .progress-bar .fill { height:100%; background:var(--accent); width:0%; transition:width .3s; }
+  .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
+  .status-dot.ok { background:var(--ok); }
+  .status-dot.warn { background:var(--warn); }
+  .status-dot.off { background:var(--danger); }
+  #genStatus { font-size:13px; color:var(--accent2); margin-top:6px; min-height:18px; }
+  .install-log { font-size:12px; color:var(--muted); margin-top:6px; min-height:16px; }
+</style>
+</head>
+<body>
+<h1>🚀 Harness SDD Orchestrator</h1>
+<p class="subtitle">Planifica, asigna a tus IAs y observa cómo trabajan en conjunto — todo en una pantalla. <span class="badge" id="clisBadge">CLIs: cargando…</span></p>
+
+<div class="bar" style="justify-content:flex-end">
+  <button class="danger" onclick="shutdown()">🛑 Salir del servidor</button>
+</div>
+
+<div class="wizard">
+  <div class="step"><div class="num">1</div><h4>📝 Plan</h4><p>Pega análisis o genera plan con Claude</p></div>
+  <div class="step"><div class="num">2</div><h4>🎯 Orquestar</h4><p>Asigna cada tarea a una IA</p></div>
+  <div class="step"><div class="num">3</div><h4>🖥️ Observar</h4><p>Ve las terminales en vivo</p></div>
+</div>
+
+<div class="help" id="helpBox">
+  <b>👋 ¿Primera vez? Sigue estos 3 pasos:</b>
+  <ol>
+    <li><b>Plan:</b> en la pestaña <i>📝 Plan</i>, pega tu análisis y pulsa "🤖 Generar plan con Claude" (o escribe el plan a mano). Claude (Opus) lo convierte en tareas.</li>
+    <li><b>Orquestar:</b> en <i>🎯 Orquestar</i>, pulsa "🔍 Parsear tareas", elige qué IA ejecuta cada una (claude/codex/kilo/opencode/vibe) y pulsa "🚀 Lanzar".</li>
+    <li><b>Observar:</b> en <i>🖥️ Terminales</i> ves a todas las IAs trabajando en vivo. O pulsa "🖥️ Abrir terminal" para lanzar la IA en una ventana real del sistema.</li>
+  </ol>
+  <span class="badge tooltip">CLIs detectados:<span class="tip">Se detectan automáticamente al arrancar el servidor</span></span>
+  <span id="clis" class="clis"></span>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('plan')">📝 Plan</button>
+  <button class="tab" onclick="showTab('orchestrate')">🎯 Orquestar</button>
+  <button class="tab" onclick="showTab('terminals')">🖥️ Terminales</button>
+  <button class="tab" onclick="showTab('skills')">🧩 Skills</button>
+  <button class="tab" onclick="showTab('status')">📊 Estado</button>
+</div>
+
+<!-- PLAN -->
+<div id="plan" class="panel active">
+  <div class="bar">
+    <button onclick="loadPlan()">📂 Cargar plan.md</button>
+    <button onclick="loadTemplate()">📄 Cargar plantilla</button>
+    <button class="primary" onclick="savePlan()">💾 Guardar plan.md</button>
+    <button onclick="generatePlan()">🤖 Generar plan con Claude</button>
+    <button onclick="openTerminal('claude')">🖥️ Abrir terminal Claude</button>
+    <button class="ghost" onclick="toggleHelp()">❓ Ayuda</button>
+  </div>
+  <textarea id="planText" rows="16" placeholder="# Plan de trabajo&#10;&#10;- [ ] Tarea 1 (agente sugerido: implementer)&#10;- [ ] Tarea 2 (agente sugerido: reviewer)&#10;..."></textarea>
+  <div class="card">
+    <h3>📐 Formato esperado del plan.md</h3>
+    <p class="clis">Para que el orquestador detecte las tareas, usa este formato (o pulsa "Generar plan con Claude" que lo produce automáticamente):</p>
+    <pre style="background:#060a14;padding:8px;border-radius:6px;font-size:11px;overflow:auto">## Fase 1 — Consolidar PS1
+
+### Tareas
+
+- [ ] Auditar motor PS1 actual (agente sugerido: explorer)
+- [ ] Documentar contratos del núcleo (agente sugerido: spec_author)
+- [ ] Crear pruebas reproducibles (agente sugerido: implementer)
+
+## Fase 2 — PS2, PSP
+
+### Tareas
+
+- [ ] Implementar backend PS2 (agente sugerido: implementer)
+- [ ] Implementar backend PSP (agente sugerido: implementer)
+- [ ] Revisar compatibilidad (agente sugerido: reviewer)</pre>
+    <p class="clis">Reglas: el parser detecta secciones con "fase/task/paso" y extrae sus bullets. Cada tarea debe tener <code>(agente sugerido: ...)</code>. Sub-tareas indentadas se ignoran. Notas/Objetivo/Contexto no aportan tareas. Ver <code>plan-template.md</code> para el formato completo.</p>
+  </div>
+  <div class="card">
+    <h3>📋 Análisis / contexto para generar el plan</h3>
+    <textarea id="analysisText" rows="6" placeholder="Describe qué quieres construir, el contexto del repo, restricciones, preferencias de IA..."></textarea>
+    <div id="genStatus"></div>
+  </div>
+</div>
+
+<!-- ORQUESTAR -->
+<div id="orchestrate" class="panel">
+  <div class="bar">
+    <button onclick="parseTasks()">🔍 Parsear tareas del plan</button>
+    <button class="primary" onclick="launchAll()">🚀 Lanzar todas</button>
+    <button onclick="clearTasks()">🗑️ Limpiar</button>
+  </div>
+  <div id="tasks"><p class="empty">Pulsa "🔍 Parsear tareas del plan" para extraer las tareas de plan.md.</p></div>
+</div>
+
+<!-- TERMINALES -->
+<div id="terminals" class="panel">
+  <div class="bar">
+    <button onclick="clearTerminals()">🗑️ Limpiar paneles</button>
+  </div>
+  <div id="terms" class="terms-grid"></div>
+  <p class="empty" id="termsEmpty">Aún no hay terminales. Lanza una tarea desde "Orquestar".</p>
+</div>
+
+<!-- SKILLS -->
+<div id="skills" class="panel">
+  <div class="help">
+    <b>🧩 Skills:</b> paquetes de instrucciones reutilizables para tus IAs. Se instalan en <code>.claude/skills/&lt;nombre&gt;/SKILL.md</code> (un nivel plano, convención del harness). Puedes instalarlas <b>en general</b> (disponibles para todos los agentes) o <b>asignarlas a agentes específicos</b>.
+    <br><span class="badge">Fuente por defecto: ComposioHQ/awesome-claude-skills (GitHub)</span>
+  </div>
+  <div class="bar">
+    <button onclick="loadInstalledSkills()">🔄 Refrescar instaladas</button>
+    <button onclick="loadCatalog()">🌐 Cargar catálogo</button>
+    <button onclick="openCustomInstall()">➕ Instalar desde URL/nombre</button>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>📦 Skills instaladas</h3>
+      <div id="installedSkills"><p class="empty">Cargando…</p></div>
+    </div>
+    <div class="card">
+      <h3>🌐 Catálogo disponible</h3>
+      <input id="skillSearch" class="search" placeholder="🔍 Buscar skill…" oninput="filterCatalog()">
+      <div id="catalogSkills"><p class="empty">Pulsa "🌐 Cargar catálogo".</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>👥 Asignación por agente</h3>
+    <p class="clis">Selecciona una skill instalada y marca a qué agentes se asigna. Se guarda en <code>.claude/skill-assignments.json</code> y se anota en el <code>.md</code> del agente.</p>
+    <div class="row" style="margin-bottom:8px">
+      <select id="assignSkillSel"></select>
+      <button onclick="saveAssignment()">💾 Guardar asignación</button>
+    </div>
+    <div id="agentChips"></div>
+  </div>
+
+  <div id="skillInstallStatus" class="install-log"></div>
+</div>
+
+<!-- ESTADO -->
+<div id="status" class="panel">
+  <div class="bar">
+    <button onclick="refreshStatus()">🔄 Refrescar</button>
+    <button onclick="runInit('--fast')">⚡ init.sh --fast</button>
+    <button onclick="runInit('--full')">✅ init.sh --full</button>
+  </div>
+  <div id="features"></div>
+  <textarea id="initout" rows="14" readonly style="margin-top:8px"></textarea>
+</div>
+
+<!-- MODAL custom install -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3>➕ Instalar skill personalizada</h3>
+    <p class="clis">Puedes instalar por nombre (del catálogo de ComposioHQ), por repo de GitHub (owner/repo) o por URL directa a un SKILL.md.</p>
+    <div style="display:grid;gap:8px">
+      <label class="clis">Modo:</label>
+      <select id="customMode">
+        <option value="catalog">Nombre del catálogo ComposioHQ</option>
+        <option value="github">Repo de GitHub (owner/repo)</option>
+        <option value="url">URL directa a SKILL.md</option>
+      </select>
+      <input id="customName" placeholder="Nombre de la skill (ej. mcp-builder)">
+      <input id="customRepo" placeholder="owner/repo (solo modo github)" style="display:none">
+      <input id="customBranch" placeholder="branch (default master)" style="display:none">
+      <input id="customPath" placeholder="ruta en el repo (default = nombre)" style="display:none">
+      <input id="customUrl" placeholder="https://…/SKILL.md" style="display:none">
+      <label class="clis">Asignar a agentes (opcional):</label>
+      <div id="customAgents"></div>
+    </div>
+    <div class="bar" style="margin-top:12px">
+      <button onclick="closeModal()">Cancelar</button>
+      <button class="primary" onclick="doCustomInstall()">⬇️ Instalar</button>
+    </div>
+    <div id="customStatus" class="install-log"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
+<script>
+let CLIS = [], TASKS = [], TERMS = {};
+let CATALOG = [], INSTALLED = [], AGENTS = [], ASSIGNMENTS = {};
+let SELECTED_AGENTS = new Set();
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('.tab[onclick*=\"' + name + '\"]').classList.add('active');
+  document.getElementById(name).classList.add('active');
+}
+
+async function loadClis() {
+  const r = await fetch('/api/clis');
+  CLIS = await r.json();
+  const txt = CLIS.map(c => c.name).join('  ·  ') || '(ninguno detectado)';
+  document.getElementById('clis').textContent = txt;
+  document.getElementById('clisBadge').textContent = 'CLIs: ' + (CLIS.map(c=>c.name).join(', ') || 'ninguno');
+}
+loadClis();
+
+// ---------- PLAN ----------
+async function loadPlan() {
+  const r = await fetch('/api/plan'); document.getElementById('planText').value = await r.text();
+}
+async function loadTemplate() {
+  const r = await fetch('/api/file?path=' + encodeURIComponent('plan-template.md'));
+  if (r.ok) { document.getElementById('planText').value = await r.text(); toast('📄 Plantilla cargada'); }
+  else { alert('No se encontró plan-template.md'); }
+}
+async function savePlan() {
+  const v = document.getElementById('planText').value;
+  await fetch('/api/plan', { method:'POST', headers:{'Content-Type':'text/plain'}, body: v });
+  toast('✅ plan.md guardado');
+}
+async function generatePlan() {
+  const input = document.getElementById('analysisText').value;
+  if (!input.trim()) { alert('Escribe un análisis primero'); return; }
+  document.getElementById('genStatus').textContent = '🤖 Generando plan con Claude (Opus)…';
+  const r = await fetch('/api/generate-plan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({input}) });
+  const j = await r.json();
+  if (j.error) { document.getElementById('genStatus').textContent = '❌ Error: ' + j.error; return; }
+  const es = new EventSource('/api/stream/' + j.id);
+  let buf = '';
+  es.onmessage = (e) => { buf += JSON.parse(e.data); document.getElementById('genStatus').textContent = '🤖 Generando… ' + buf.length + ' chars'; };
+  es.addEventListener('end', () => { es.close(); document.getElementById('planText').value = buf; savePlan(); document.getElementById('genStatus').textContent = '✅ Plan generado y guardado en plan.md'; });
+}
+async function openTerminal(cli) {
+  const r = await fetch('/api/open-terminal', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({cli}) });
+  const j = await r.json();
+  if (j.error) alert('❌ ' + j.error); else toast('🖥️ Terminal de ' + cli + ' abierta');
+}
+
+// ---------- ORQUESTAR ----------
+function parseTasks() {
+  const text = document.getElementById('planText').value;
+  const lines = text.split(/\n/);
+  TASKS = [];
+  const EXCLUDE = /tarea|task|fase|phase|paso|step/i;
+  const SKIP_SECTIONS = /^(notas|notes|objetivo|objective|contexto|context|objetivos)$/i;
+  let inTaskSection = false;
+  let hasTaskSection = false;
+  // first pass: detect if any task section exists
+  lines.forEach(l => {
+    const m = l.match(/^#{2,3}\s+(.+)$/);
+    if (m && EXCLUDE.test(m[1])) hasTaskSection = true;
+  });
+  lines.forEach(l => {
+    const hm = l.match(/^#{2,3}\s+(.+)$/);
+    if (hm) {
+      const title = hm[1].trim().replace(/[^a-zA-Záéíóúñ ]/g, '').trim().toLowerCase();
+      const base = title.split(/\s+/)[0];
+      // update inTaskSection
+      if (SKIP_SECTIONS.test(base) || SKIP_SECTIONS.test(title)) { inTaskSection = false; return; }
+      inTaskSection = EXCLUDE.test(hm[1]);
+      return;
+    }
+    if (/^\s{2,}/.test(l)) return; // sub-bullets ignored
+    if (!l.trim()) return;
+    if (/^#/.test(l.trim())) return;
+    // match bullet
+    let m = l.match(/^[-*]\s*\[\s*[x ]?\s*\]\s*(.+)$/i);
+    if (!m) m = l.match(/^[-*]\s+(.+)$/);
+    if (!m) m = l.match(/^\d+[.)]\s+(.+)$/);
+    if (!m) return;
+    const txt = m[1].trim();
+    if (txt.length < 4) return;
+    const am = txt.match(/\(agente sugerido:\s*([a-zA-Z_]+)\)/i);
+    const role = am ? am[1].toLowerCase() : 'implementer';
+    // decide if this is a task
+    let isTask = false;
+    if (hasTaskSection) {
+      isTask = inTaskSection;
+    } else {
+      // no task section: accept bullets with agent hint
+      isTask = /\(agente sugerido:/i.test(txt);
+    }
+    if (!isTask) return;
+    TASKS.push({ text: txt, cli: CLIS.length ? CLIS[0].name : '', role, id: null });
+  });
+  // fallback: if nothing found, take all top-level bullets with agent hint
+  if (TASKS.length === 0) {
+    lines.forEach(l => {
+      if (/^\s{2,}/.test(l)) return;
+      let m = l.match(/^[-*]\s*\[?\s*[ x]?\]?\s*(.+)$/i);
+      if (!m) m = l.match(/^\d+[.)]\s+(.+)$/);
+      if (m && m[1].trim().length > 3 && /\(agente sugerido:/i.test(m[1])) {
+        const txt = m[1].trim();
+        const am = txt.match(/\(agente sugerido:\s*([a-zA-Z_]+)\)/i);
+        TASKS.push({ text: txt, cli: CLIS.length ? CLIS[0].name : '', role: am ? am[1].toLowerCase() : 'implementer', id: null });
+      }
+    });
+  }
+  renderTasks();
+  saveTasks();
+}
+
+function clearTasks() { TASKS = []; renderTasks(); }
+function renderTasks() {
+  const div = document.getElementById('tasks');
+  if (TASKS.length === 0) { div.innerHTML = '<p class="empty">No hay tareas. Pulsa "🔍 Parsear tareas del plan".</p>'; return; }
+  div.innerHTML = '';
+  TASKS.forEach((t, i) => {
+    const row = document.createElement('div'); row.className = 'task';
+    const span = document.createElement('span'); span.textContent = (i+1) + '. ' + t.text;
+    const sel = document.createElement('select');
+    CLIS.forEach(c => { const o = document.createElement('option'); o.value = c.name; o.textContent = c.name; if (c.name === t.cli) o.selected = true; sel.appendChild(o); });
+    sel.onchange = () => t.cli = sel.value;
+    const roleSel = document.createElement('select');
+    ['implementer','reviewer','explorer','spec_author','leader'].forEach(r => { const o=document.createElement('option'); o.value=r; o.textContent=r; if (r===(t.role||'implementer')) o.selected=true; roleSel.appendChild(o); });
+    roleSel.onchange = () => t.role = roleSel.value;
+    if (!t.role) t.role = 'implementer';
+    const btn = document.createElement('button'); btn.textContent = t.id ? '⏳ Corriendo' : '▶ Lanzar'; btn.disabled = !!t.id; btn.onclick = () => launchTask(i);
+    const btn2 = document.createElement('button'); btn2.textContent = '🖥️ Terminal'; btn2.onclick = () => openTerminal(t.cli);
+    const st = document.createElement('span'); st.className = 'status'; st.textContent = t.id ? t.id : 'pendiente';
+    row.appendChild(span); row.appendChild(sel); row.appendChild(roleSel); row.appendChild(btn); row.appendChild(btn2); row.appendChild(st);
+    div.appendChild(row);
+  });
+}
+async function launchTask(i) {
+  const t = TASKS[i];
+  if (!t.cli) { alert('Selecciona una IA'); return; }
+  // inject assigned skills for the role
+  let prompt = t.text;
+  try {
+    const ar = await fetch('/api/skills/assignments'); const A = await ar.json();
+    const skillNames = Object.keys(A).filter(k => (A[k]||[]).includes(t.role));
+    if (skillNames.length) {
+      const paths = skillNames.map(n => '.claude/skills/' + n + '/SKILL.md').join(', ');
+      prompt = t.text + '\n\n[Skills asignadas a tu rol ' + t.role + ': ' + paths + '. Leelas antes de empezar.]';
+    }
+  } catch (e) {}
+  const r = await fetch('/api/run', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ cli: t.cli, prompt }) });
+  const j = await r.json();
+  if (j.error) { alert(j.error); return; }
+  t.id = j.id; addTerminal(j.id, t.cli, t.text); renderTasks(); saveTasks(); showTab('terminals');
+}
+async function launchAll() { for (let i = 0; i < TASKS.length; i++) { if (!TASKS[i].id) await launchTask(i); } }
+
+// ---------- TERMINALES ----------
+function addTerminal(id, cli, title) {
+  const container = document.getElementById('terms');
+  const empty = document.getElementById('termsEmpty'); if (empty) empty.style.display = 'none';
+  const box = document.createElement('div'); box.className = 'card';
+  box.innerHTML = `<h3>${cli} — ${title.substring(0,50)}</h3><div class="term" id="term-${id}"></div>`;
+  container.appendChild(box);
+  const term = new Terminal({ theme: { background:'#060a14', foreground:'#e5e7eb', cursor:'#38bdf8' }, fontSize:12 });
+  const fitAddon = new FitAddon.FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(document.getElementById('term-' + id));
+  setTimeout(() => fitAddon.fit(), 100);
+  const es = new EventSource('/api/stream/' + id);
+  es.onmessage = (e) => { term.write(JSON.parse(e.data)); };
+  es.addEventListener('end', () => { es.close(); if (Notification && Notification.permission === 'granted') new Notification('Tarea terminada', { body: title.substring(0,60) }); });
+}
+function clearTerminals() { document.getElementById('terms').innerHTML = ''; const e = document.getElementById('termsEmpty'); if (e) { e.style.display = ''; document.getElementById('terms').appendChild(e); } }
+
+// ---------- SKILLS ----------
+async function loadInstalledSkills() {
+  const r = await fetch('/api/skills/installed'); INSTALLED = await r.json();
+  const div = document.getElementById('installedSkills');
+  if (INSTALLED.length === 0) { div.innerHTML = '<p class="empty">No hay skills instaladas todavía.</p>'; }
+  else {
+    div.innerHTML = '';
+    INSTALLED.forEach(s => {
+      const row = document.createElement('div'); row.className = 'skill-row';
+      const name = document.createElement('span'); name.className = 'name'; name.textContent = s.name;
+      const desc = document.createElement('span'); desc.className = 'desc'; desc.textContent = s.description || '(sin descripción)';
+      const track = document.createElement('span'); track.className = 'track'; track.textContent = 'instalada';
+      const btn = document.createElement('button'); btn.className = 'danger'; btn.textContent = '🗑️ Desinstalar';
+      btn.onclick = async () => { if (!confirm('¿Desinstalar ' + s.name + '?')) return; await fetch('/api/skills/uninstall', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name: s.name}) }); loadInstalledSkills(); loadCatalog(); refreshAssignSelect(); };
+      row.appendChild(name); row.appendChild(desc); row.appendChild(track); row.appendChild(btn);
+      div.appendChild(row);
+    });
+  }
+  refreshAssignSelect();
+}
+async function loadCatalog() {
+  document.getElementById('skillInstallStatus').textContent = '🌐 Cargando catálogo…';
+  const r = await fetch('/api/skills/catalog'); CATALOG = await r.json();
+  document.getElementById('skillInstallStatus').textContent = '✅ Catálogo cargado: ' + CATALOG.length + ' skills';
+  filterCatalog();
+}
+function filterCatalog() {
+  const q = (document.getElementById('skillSearch').value || '').toLowerCase();
+  const div = document.getElementById('catalogSkills');
+  const list = CATALOG.filter(s => !q || s.name.toLowerCase().includes(q) || (s.description||'').toLowerCase().includes(q) || (s.track||'').toLowerCase().includes(q));
+  if (list.length === 0) { div.innerHTML = '<p class="empty">Sin resultados.</p>'; return; }
+  div.innerHTML = '';
+  list.forEach(s => {
+    const row = document.createElement('div'); row.className = 'skill-row';
+    const name = document.createElement('span'); name.className = 'name'; name.textContent = s.name;
+    const desc = document.createElement('span'); desc.className = 'desc'; desc.textContent = s.description || '';
+    const track = document.createElement('span'); track.className = 'track'; track.textContent = s.track || '';
+    const btn = document.createElement('button');
+    btn.textContent = s.installed ? '✅ Instalada' : '⬇️ Instalar';
+    btn.disabled = !!s.installed;
+    btn.className = s.installed ? '' : 'primary';
+    btn.onclick = () => installSkill(s.name, [], s.stateDirs || []);
+    row.appendChild(name); row.appendChild(desc); row.appendChild(track); row.appendChild(btn);
+    div.appendChild(row);
+  });
+}
+async function installSkill(name, agents, stateDirs) {
+  document.getElementById('skillInstallStatus').textContent = '⬇️ Instalando ' + name + '…';
+  const r = await fetch('/api/skills/install', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, source:'catalog', agents, stateDirs }) });
+  const j = await r.json();
+  if (j.error) { document.getElementById('skillInstallStatus').textContent = '❌ ' + j.error; return; }
+  document.getElementById('skillInstallStatus').textContent = '✅ ' + name + ' instalada en ' + j.path;
+  loadInstalledSkills(); loadCatalog();
+}
+async function loadAgents() {
+  const r = await fetch('/api/agents'); AGENTS = await r.json();
+}
+async function loadAssignmentsData() {
+  const r = await fetch('/api/skills/assignments'); ASSIGNMENTS = await r.json();
+}
+function refreshAssignSelect() {
+  const sel = document.getElementById('assignSkillSel');
+  sel.innerHTML = '';
+  INSTALLED.forEach(s => {
+    const o = document.createElement('option'); o.value = s.name; o.textContent = s.name; sel.appendChild(o);
+  });
+  if (INSTALLED.length === 0) { const o = document.createElement('option'); o.textContent = '(ninguna instalada)'; sel.appendChild(o); }
+  sel.onchange = () => renderAgentChips();
+  renderAgentChips();
+}
+function renderAgentChips() {
+  const skill = document.getElementById('assignSkillSel').value;
+  const assigned = new Set((ASSIGNMENTS[skill] || []));
+  SELECTED_AGENTS = new Set(assigned);
+  const div = document.getElementById('agentChips');
+  div.innerHTML = '';
+  AGENTS.forEach(a => {
+    const chip = document.createElement('span');
+    chip.className = 'agent-chip' + (SELECTED_AGENTS.has(a) ? ' active' : '');
+    chip.textContent = a;
+    chip.onclick = () => { if (SELECTED_AGENTS.has(a)) SELECTED_AGENTS.delete(a); else SELECTED_AGENTS.add(a); chip.classList.toggle('active'); };
+    div.appendChild(chip);
+  });
+}
+async function saveAssignment() {
+  const skill = document.getElementById('assignSkillSel').value;
+  const agents = Array.from(SELECTED_AGENTS);
+  await fetch('/api/skills/assign', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ skill, agents }) });
+  ASSIGNMENTS[skill] = agents;
+  toast('✅ Asignación guardada: ' + skill + ' → ' + (agents.join(', ') || '(ninguno)'));
+}
+
+// custom install modal
+function openCustomInstall() {
+  document.getElementById('modalBackdrop').classList.add('show');
+  // render agent checkboxes
+  const div = document.getElementById('customAgents'); div.innerHTML = '';
+  AGENTS.forEach(a => {
+    const lbl = document.createElement('label'); lbl.style.marginRight='8px';
+    const cb = document.createElement('input'); cb.type='checkbox'; cb.value=a; cb.style.marginRight='4px';
+    lbl.appendChild(cb); lbl.appendChild(document.createTextNode(a)); div.appendChild(lbl);
+  });
+}
+function closeModal() { document.getElementById('modalBackdrop').classList.remove('show'); }
+document.getElementById('customMode').addEventListener('change', (e) => {
+  const m = e.target.value;
+  document.getElementById('customRepo').style.display = m === 'github' ? '' : 'none';
+  document.getElementById('customBranch').style.display = m === 'github' ? '' : 'none';
+  document.getElementById('customPath').style.display = m === 'github' ? '' : 'none';
+  document.getElementById('customUrl').style.display = m === 'url' ? '' : 'none';
+});
+async function doCustomInstall() {
+  const mode = document.getElementById('customMode').value;
+  const name = document.getElementById('customName').value.trim();
+  const agents = Array.from(document.querySelectorAll('#customAgents input:checked')).map(c => c.value);
+  const status = document.getElementById('customStatus');
+  status.textContent = '⬇️ Instalando…';
+  let body = { name, agents };
+  if (mode === 'catalog') { body.source = 'catalog'; }
+  else if (mode === 'github') {
+    body.source = 'github';
+    body.repo = document.getElementById('customRepo').value.trim();
+    body.branch = document.getElementById('customBranch').value.trim() || 'master';
+    body.path = document.getElementById('customPath').value.trim() || name;
+  } else {
+    body.source = 'url';
+    body.url = document.getElementById('customUrl').value.trim();
+  }
+  const r = await fetch('/api/skills/install', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (j.error) { status.textContent = '❌ ' + j.error; return; }
+  status.textContent = '✅ Instalada en ' + j.path;
+  loadInstalledSkills(); loadCatalog();
+  setTimeout(closeModal, 1200);
+}
+
+// ---------- ESTADO ----------
+async function loadTasks() {
+  try {
+    const r = await fetch('/api/tasks');
+    if (r.ok) { const t = await r.json(); if (Array.isArray(t) && t.length) { TASKS = t; renderTasks(); } }
+  } catch (e) {}
+}
+async function saveTasks() {
+  try { await fetch('/api/tasks', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(TASKS) }); } catch (e) {}
+}
+async function refreshStatus() {
+  const r = await fetch('/api/features');
+  const f = await r.json();
+  const div = document.getElementById('features');
+  div.innerHTML = '<table><tr><th>id</th><th>name</th><th>status</th><th>priority</th></tr>' +
+    f.map(x => `<tr><td>${x.id}</td><td>${x.name}</td><td>${x.status}</td><td>${x.priority||''}</td></tr>`).join('') + '</table>';
+}
+async function runInit(flag) {
+  document.getElementById('initout').value = '$ ./init.sh ' + flag + '\n';
+  const r = await fetch('/api/init', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({flag}) });
+  const j = await r.json();
+  document.getElementById('initout').value += (j.output || '') + '\n[exit code: ' + j.code + ']\n';
+  refreshStatus();
+}
+
+async function shutdown() {
+  if (!confirm('¿Detener el servidor GUI? (Tendrás que volver a lanzar gui.sh/gui.bat)')) return;
+  try { await fetch('/api/shutdown', { method:'POST' }); } catch (e) {}
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:12px"><h1>🛑 Servidor detenido</h1><p style="color:#9ca3af">Cierra esta pestaña. Para volver a usar la GUI, ejecuta gui.sh / gui.bat.</p></div>';
+}
+function toast(msg) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1f2937;color:#e5e7eb;padding:10px 16px;border-radius:8px;border:1px solid #38bdf8;z-index:200;font-size:13px;';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+function toggleHelp() { const h = document.getElementById('helpBox'); h.style.display = h.style.display === 'none' ? '' : 'none'; }
+
+// ---------- INIT ----------
+refreshStatus();
+loadPlan();
+loadTasks();
+if (window.Notification && Notification.permission === 'default') Notification.requestPermission();
+loadAgents();
+loadAssignmentsData();
+loadInstalledSkills();
+</script>
+</body>
+</html>

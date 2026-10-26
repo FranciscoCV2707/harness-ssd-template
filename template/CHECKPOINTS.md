@@ -76,4 +76,21 @@
 
 **Cómo usar este archivo:**
 El agente `reviewer` recorre cada checkbox relevante a la feature trabajada,
-marca `[x]` o `[ ]`, y rechaza el cierre si queda alguno vacío en C1–C7.
+marca `[x]` o `[ ]`, y rechaza el cierre si queda alguno vacío en C1–C9.
+
+---
+
+## C8 — Model routing documentado
+
+- [ ] `AGENTS.md` documenta la tabla de model routing (lider Opus medium; workers mas baratos)
+- [ ] Los subagentes declaran su modelo en `.claude/agents/*.md` o en `.opencode/opencode.json`
+- [ ] Ningun subagente de bajo coste (explorer/implementer) hereda Opus por defecto
+
+---
+
+## C9 — Contexto y reduccion de tokens
+
+- [ ] Las reglas criticas viven en system prompt (`AGENTS.md`/`CLAUDE.md`), no solo en el chat
+- [ ] Se usan MCPs de navegacion o compresion cuando el proyecto es mediano/grande
+- [ ] Prompt caching habilitado en system prompt + tool defs si el proveedor lo soporta
+- [ ] `init.sh --fast` disponible para iteracion rapida (sin build/tests)

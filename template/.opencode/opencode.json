@@ -1,0 +1,27 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "leader": {
+      "description": "Coordinador: descompone y supervisa, nunca implementa. Siempre Claude Opus con effort medium.",
+      "model": "anthropic/claude-opus-4-7",
+      "options": { "effort": "medium" }
+    },
+    "spec_author": {
+      "description": "Escribe specs EARS. Nunca codigo.",
+      "model": "anthropic/claude-opus-4-7",
+      "options": { "effort": "medium" }
+    },
+    "reviewer": {
+      "description": "Aprueba o rechaza contra CHECKPOINTS.md. Nunca edita codigo.",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "implementer": {
+      "description": "Implementa una feature siguiendo TDD por requisito.",
+      "model": "anthropic/claude-sonnet-4-6"
+    },
+    "explorer": {
+      "description": "Investigacion de solo lectura previa a una spec.",
+      "model": "anthropic/claude-haiku-4-5"
+    }
+  }
+}

@@ -96,3 +96,22 @@ surfaced"), no bloqueantes.
 
 N/A — este repo es la plantilla en sí (bash + markdown). El stack real vive
 en cada proyecto destino, configurado en su `init.config.sh`.
+
+## Cambios recientes (mejora multi-agente)
+
+- Añadido .opencode/opencode.json con model routing por agente (Opus medium lider).
+- Añadidos stubs multi-CLI: GEMINI.md, .cursorrules.
+- Añadido docs/mcp.md con MCPs opt-in para reduccion de tokens.
+- Añadida skill context-pruning, model-routing, git-ops-commit-msg.
+- init.sh soporta --fast/--full.
+- CHECKPOINTS.md ampliado a C9 (model routing + contexto/tokens).
+- AGENTS.md §9 (model routing) y §10 (contexto/tokens).
+- CLAUDE.md con model routing y prompt caching.
+
+
+## Cambios recientes (multi-CLI, memoria, Graphify)
+
+- Añadido `docs/multi-cli.md` + configs de ejemplo para Codex, KiloCode, Mistral Vibe.
+- Añadida memoria compartida en disco: `memory/` (append-only, todas las IAs).
+- Integrado Graphify: `graphify-out/` en .gitignore + documentacion.
+- MCP de memoria compartido documentado (codebase-memory-mcp / OpenViking).

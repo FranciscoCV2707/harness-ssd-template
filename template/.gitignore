@@ -1,6 +1,14 @@
 # Obsidian local config (this repo is Obsidian-vault-compatible; see docs/obsidian.md)
 .obsidian/
 
+# Graphify output (local knowledge graph; regenerate with /graphify)
+graphify-out/
+
+# Tooling state/cache (add per installed skill/MCP; see .claude/skills/README.md)
+.context-mode/
+.headroom/
+.codebase-memory/
+
 # OS noise
 .DS_Store
 Thumbs.db

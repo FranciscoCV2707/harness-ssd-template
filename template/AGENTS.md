@@ -11,10 +11,10 @@
 
 ## 0. Multi-IA
 
-Cualquier agente (Claude Code, Codex, Cursor, Gemini...) empieza por este
+Cualquier agente (Claude Code, Codex, Cursor, Mistral Vibe, Antigravity...) empieza por este
 archivo. `CLAUDE.md` es solo un wrapper delgado que fija el rol `leader` para
 Claude Code y apunta de vuelta aquí. Si usas otra herramienta que requiera su
-propio archivo de entrada (`GEMINI.md`, `.cursorrules`, etc.), enlázalo o
+propio archivo de entrada (`.cursorrules`, etc.), enlázalo o
 cópialo como puntero a `AGENTS.md` — el contenido normativo vive aquí, no se
 duplica.
 
@@ -38,12 +38,15 @@ duplica.
 | `specs/<feature>/` | Spec SDD de una feature: requirements, design, tasks, traceability | Antes de implementar esa feature |
 | `progress/current.md` | Estado de la sesión actual | Siempre, al empezar |
 | `progress/history.md` | Bitácora append-only de sesiones anteriores | Si necesitas contexto histórico |
+| `memory/` | Memoria persistente entre sesiones/agentes (decisiones, glosario, pitfalls) | Al arrancar y antes de redescubrir contexto |
 | `docs/architecture.md` | Arquitectura (Clean Architecture) del proyecto, qué significa "buen código" | Antes de implementar |
 | `docs/conventions.md` | Convenciones de estilo del proyecto (naming, errores, DTOs, tests, commits) | Antes de escribir código |
 | `docs/verification.md` | Cómo verificar que una feature funciona correctamente + disciplina TDD | Antes de declarar done |
 | `docs/specs.md` | El proceso SDD completo: estados, gates, cuándo se escribe cada spec | Antes de escribir o aprobar una spec |
-| `docs/obsidian.md` | Cómo usar este proyecto como vault de Obsidian | Si usas Obsidian para navegar el proyecto |
-| `CHECKPOINTS.md` | Criterios objetivos de "estado final correcto" (C1..C7) | Para auto-evaluarte |
+| `docs/obsidian.md` |
+| `docs/mcp.md` | MCPs y herramientas recomendadas (tokens, multi-agente) | Antes de instalar tooling externo o si hay presion de contexto |
+| `docs/multi-cli.md` | Como usar el arnes con KiloCode, OpenCode, Claude, Codex, Mistral Vibe, Antigravity | Al configurar un nuevo CLI/IA en el proyecto | Cómo usar este proyecto como vault de Obsidian | Si usas Obsidian para navegar el proyecto |
+| `CHECKPOINTS.md` | Criterios objetivos de "estado final correcto" (C1..C9) | Para auto-evaluarte |
 | `.claude/agents/` | Definiciones de subagentes (leader, spec_author, explorer, implementer, reviewer) | Si orquestas trabajo |
 | `.claude/skills/` | Skills reutilizables, un nivel plano (`<track>-<nombre>/SKILL.md`) — ver `.claude/skills/README.md` | Antes de repetir una tarea ya resuelta en otro proyecto |
 | `init.config.sh` | Comandos de build/test/lint específicos de este proyecto | Antes de correr `init.sh` por primera vez |
@@ -138,3 +141,47 @@ Antes de terminar:
 - Si la herramienta no hace lo que esperas: documenta el bloqueo en
   `progress/current.md` y para la sesión.
 - **Nunca inventes** un workaround si no entiendes por qué algo falla.
+
+---
+
+## 9. Model routing (multi-IA, coste)
+
+El lider siempre es Claude Opus con effort medium. Los workers usan modelos mas baratos segun la tarea. Ver `docs/mcp.md` y `.opencode/opencode.json`.
+
+| Rol | Modelo | Effort | Por que |
+|---|---|---|---|
+| `leader` | Claude Opus 4.7/4.8 | medium | Coordinacion y decisiones |
+| `spec_author` | Claude Opus | medium | Requisitos EARS precisos |
+| `reviewer` | Claude Sonnet 4.6 (o Opus en features criticas) | medium | Juicio |
+| `implementer` | Claude Sonnet 4.6 | low/medium | Codigo mecanico siguiendo spec |
+| `explorer` | Claude Haiku 4.5 | low | Solo lectura/busqueda |
+
+Claude Code: fija en `~/.claude/settings.json` o `.claude/settings.json`:
+`{ "model": "claude-opus-4-7", "effort": "medium", "env": { "CLAUDE_CODE_EFFORT": "medium" } }`.
+Subagentes declaran su modelo en el frontmatter de `.claude/agents/*.md` para no heredar Opus.
+
+OpenCode: ver `.opencode/opencode.json`. Otros CLIs: enlaza su archivo de entrada a `AGENTS.md` (no duplicar).
+
+## 10. Contexto y reduccion de tokens
+
+Reglas duras para no saturar el contexto:
+- Mover reglas criticas a system prompt / `CLAUDE.md` (sobreviven a compaction); no depender de que la conversacion las recuerde.
+- Preferir MCPs de navegacion (`codebase-memory-mcp`, `context-mode`, `token-savior`, `Semble`) a `grep`/`read` de archivos enteros.
+- Comprimir tool outputs ruidosos con `headroom` antes de que entren al contexto.
+- Usar prompt caching (`cache_control`) en system prompt + tool defs + docs largos reutilizados.
+- Skills on-demand: solo se cargan al invocarse; no pegar skills masivas en `AGENTS.md`.
+- Modo rapido de init: `./init.sh --fast` (solo harness) vs `./init.sh --full` (build+tests).
+- Si una sesion supera ~60% del contexto, compactar explicitamente y re-leer `progress/current.md` + `feature_list.json`.
+
+Ver `docs/mcp.md` para la lista completa de herramientas opt-in.
+
+
+---
+
+## 11. Memoria compartida y Graphify
+
+- Toda IA lee/escribe en `memory/` y `progress/`; el chat no es memoria.
+- Entradas append-only con fecha + autor (agente/herramienta).
+- MCP de memoria compartido (codebase-memory-mcp / OpenViking) expone el mismo grafo a todas las IAs.
+- Graphify (`/graphify`) genera `graphify-out/` (HTML+JSON+informe) para entender el codebase sin re-explorar; regenerar tras cambios estructurales.
+- Ver `docs/multi-cli.md` para la configuracion por herramienta.

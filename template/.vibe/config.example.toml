@@ -1,0 +1,9 @@
+# Mistral Vibe example config. Copy to ~/.vibe/config.toml or .vibe/config.toml
+active_model = "devstral-2"
+
+[[providers]]
+name = "mistral"
+api_key_env = "MISTRAL_API_KEY"
+
+# El lider del arnes sigue siendo Claude Opus (medium); Vibe se usa como worker
+# para tareas de codigo con Devstral.

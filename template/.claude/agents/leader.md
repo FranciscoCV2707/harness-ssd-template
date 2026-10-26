@@ -101,7 +101,7 @@ Al terminar: escribir resultado en progress/impl_<feature>.md y devolver solo la
 Al lanzar un `reviewer`, siempre incluye:
 ```
 Lee: progress/impl_<feature>.md
-Valida contra: CHECKPOINTS.md (C2..C7)
+Valida contra: CHECKPOINTS.md (C2..C9)
 Ejecuta: ./init.sh
 Escribe resultado en: progress/review_<feature>.md
 Devuelve: "aprobado" o "rechazado → <razón breve>"

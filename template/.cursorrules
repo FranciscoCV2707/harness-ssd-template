@@ -1,0 +1,7 @@
+# Cursor rules pointer — {{PROJECT_NAME}}
+
+The canonical, multi-AI entry point for this repository is AGENTS.md.
+Read AGENTS.md first, then run ./init.sh.
+
+Do not duplicate normative rules here. If Cursor needs its own file, keep it
+as a thin pointer to AGENTS.md (see README.md "Multi-IA").

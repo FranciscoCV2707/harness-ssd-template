@@ -1,0 +1,6 @@
+# Codex CLI example config. Copy to ~/.codex/config.toml or .codex/config.toml
+model = "gpt-5-codex"
+model_reasoning_effort = "medium"  # high solo en decisiones arquitectonicas
+
+# El lider del arnes sigue siendo Claude Opus (medium) cuando esta disponible;
+# Codex se usa como worker (implementer/reviewer) o para tareas mecanicas.

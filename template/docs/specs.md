@@ -32,7 +32,7 @@ pending → spec_ready → in_progress → done
 3. **`in_progress`**: `implementer` trabaja siguiendo `specs/<feature>/tasks.md`
    (test rojo → verde → refactor por cada requisito), actualizando
    `traceability.md` tras cada commit.
-4. **`done`**: `reviewer` valida contra `CHECKPOINTS.md` (C1–C7), en
+4. **`done`**: `reviewer` valida contra `CHECKPOINTS.md` (C1–C9), en
    particular que `traceability.md` no tiene filas "pendiente" y que los
    tests nombran sus R-ids.
 

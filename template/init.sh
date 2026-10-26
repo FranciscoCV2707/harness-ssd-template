@@ -6,6 +6,13 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+MODE="full"
+case "${1:-}" in
+  --fast) MODE="fast" ;;
+  --full|"") MODE="full" ;;
+  *) echo "Uso: $0 [--fast|--full]"; exit 2 ;;
+esac
+
 # shellcheck source=./init.config.sh
 source ./init.config.sh
 
@@ -88,6 +95,8 @@ echo "→ Verificando coherencia del harness..."
 [ -f scripts/feature-list-query ] || fail "scripts/feature-list-query no encontrado"
 [ -f scripts/validate-feature-gates ] || fail "scripts/validate-feature-gates no encontrado"
 [ -f progress/current.md ]   || fail "progress/current.md no encontrado"
+[ -d memory ]                || fail "memory/ no encontrado"
+[ -f memory/README.md ]      || fail "memory/README.md no encontrado"
 [ -d specs ]                 || fail "specs/ no encontrado"
 [ -d specs/_template ]       || fail "specs/_template/ no encontrado"
 [ -f specs/_template/requirements.md ] || fail "specs/_template/requirements.md no encontrado"
@@ -152,42 +161,46 @@ else
   fail "STATUS.md desactualizado (${STATUS_SYNC#MISMATCH:})"
 fi
 
-# ── 5. BUILD ─────────────────────────────────
-echo ""
-echo "→ Build..."
-if [ -n "$BUILD_CMD" ]; then
-  eval "$BUILD_CMD" 2>&1
-  ok "Build exitoso"
-else
-  warn "BUILD_CMD vacío en init.config.sh — se salta build"
-fi
-
-# ── 6. TESTS ─────────────────────────────────
-echo ""
-echo "→ Ejecutando tests..."
-if [ -n "$TEST_CMD" ]; then
-  eval "$TEST_CMD" 2>&1
-  ok "Tests pasados"
-else
-  warn "TEST_CMD vacío en init.config.sh — se salta tests"
-fi
-
-if [ -n "$LINT_CMD" ]; then
+if [ "$MODE" = "full" ]; then
+  # ── 5. BUILD ─────────────────────────────────
   echo ""
-  echo "→ Lint..."
-  eval "$LINT_CMD" 2>&1
-  ok "Lint sin errores"
-else
-  warn "LINT_CMD vacío en init.config.sh — se salta lint"
-fi
+  echo "→ Build..."
+  if [ -n "$BUILD_CMD" ]; then
+    eval "$BUILD_CMD" 2>&1
+    ok "Build exitoso"
+  else
+    warn "BUILD_CMD vacío en init.config.sh — se salta build"
+  fi
 
-if [ -n "$TYPECHECK_CMD" ]; then
+  # ── 6. TESTS ─────────────────────────────────
   echo ""
-  echo "→ Typecheck..."
-  eval "$TYPECHECK_CMD" 2>&1
-  ok "Typecheck sin errores"
+  echo "→ Ejecutando tests..."
+  if [ -n "$TEST_CMD" ]; then
+    eval "$TEST_CMD" 2>&1
+    ok "Tests pasados"
+  else
+    warn "TEST_CMD vacío en init.config.sh — se salta tests"
+  fi
+
+  if [ -n "$LINT_CMD" ]; then
+    echo ""
+    echo "→ Lint..."
+    eval "$LINT_CMD" 2>&1
+    ok "Lint sin errores"
+  else
+    warn "LINT_CMD vacío en init.config.sh — se salta lint"
+  fi
+
+  if [ -n "$TYPECHECK_CMD" ]; then
+    echo ""
+    echo "→ Typecheck..."
+    eval "$TYPECHECK_CMD" 2>&1
+    ok "Typecheck sin errores"
+  else
+    warn "TYPECHECK_CMD vacío en init.config.sh — se salta typecheck"
+  fi
 else
-  warn "TYPECHECK_CMD vacío en init.config.sh — se salta typecheck"
+  warn "Modo --fast: se salta build/tests/lint/typecheck"
 fi
 
 # ── 7. RESUMEN ───────────────────────────────

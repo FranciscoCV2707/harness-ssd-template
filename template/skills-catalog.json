@@ -1,0 +1,32 @@
+{
+  "source": "ComposioHQ/awesome-claude-skills",
+  "repo": "ComposioHQ/awesome-claude-skills",
+  "branch": "master",
+  "skills": [
+    { "name": "mcp-builder", "track": "agent-llm", "description": "Guide for building high-quality MCP servers (Python/TS).", "recommendedFor": ["implementer", "explorer"], "stateDirs": [] },
+    { "name": "skill-creator", "track": "agent-llm", "description": "Create new Claude Code skills from scratch.", "recommendedFor": ["leader", "spec_author"], "stateDirs": [] },
+    { "name": "skill-share", "track": "agent-llm", "description": "Share and publish skills.", "recommendedFor": ["leader"], "stateDirs": [] },
+    { "name": "webapp-testing", "track": "testing", "description": "Test web applications with Playwright.", "recommendedFor": ["implementer", "reviewer"], "stateDirs": [] },
+    { "name": "file-organizer", "track": "docs", "description": "Organize files and folders intelligently.", "recommendedFor": ["explorer"], "stateDirs": [] },
+    { "name": "changelog-generator", "track": "docs", "description": "Generate changelogs from git commits.", "recommendedFor": ["docs", "implementer"], "stateDirs": [] },
+    { "name": "content-research-writer", "track": "docs", "description": "Research and write content with citations.", "recommendedFor": ["spec_author"], "stateDirs": [] },
+    { "name": "internal-comms", "track": "docs", "description": "Write internal communications (status, newsletters).", "recommendedFor": ["leader"], "stateDirs": [] },
+    { "name": "domain-name-brainstormer", "track": "frontend", "description": "Brainstorm domain names.", "recommendedFor": ["spec_author"], "stateDirs": [] },
+    { "name": "brand-guidelines", "track": "frontend", "description": "Apply brand guidelines to artifacts.", "recommendedFor": ["implementer"], "stateDirs": [] },
+    { "name": "canvas-design", "track": "frontend", "description": "Design canvases/posters as PDF/PNG.", "recommendedFor": ["implementer"], "stateDirs": [] },
+    { "name": "theme-factory", "track": "frontend", "description": "Style artifacts with themes.", "recommendedFor": ["implementer"], "stateDirs": [] },
+    { "name": "artifacts-builder", "track": "frontend", "description": "Build React/Tailwind/shadcn artifacts.", "recommendedFor": ["implementer"], "stateDirs": [] },
+    { "name": "slack-gif-creator", "track": "frontend", "description": "Create animated GIFs for Slack.", "recommendedFor": ["implementer"], "stateDirs": [] },
+    { "name": "invoice-organizer", "track": "data", "description": "Organize invoices for tax prep.", "recommendedFor": ["explorer"], "stateDirs": [] },
+    { "name": "lead-research-assistant", "track": "data", "description": "Research leads for sales.", "recommendedFor": ["explorer"], "stateDirs": [] },
+    { "name": "competitive-ads-extractor", "track": "data", "description": "Extract competitor ads.", "recommendedFor": ["explorer"], "stateDirs": [] },
+    { "name": "meeting-insights-analyzer", "track": "data", "description": "Analyze meeting transcripts.", "recommendedFor": ["spec_author"], "stateDirs": [] },
+    { "name": "developer-growth-analysis", "track": "debug", "description": "Analyze developer growth from git.", "recommendedFor": ["reviewer"], "stateDirs": [] },
+    { "name": "langsmith-fetch", "track": "debug", "description": "Fetch LangSmith traces for debugging.", "recommendedFor": ["debug", "explorer"], "stateDirs": [] },
+    { "name": "image-enhancer", "track": "frontend", "description": "Enhance image resolution.", "recommendedFor": ["implementer"], "stateDirs": [] },
+    { "name": "tailored-resume-generator", "track": "docs", "description": "Generate tailored resumes.", "recommendedFor": [], "stateDirs": [] },
+    { "name": "raffle-winner-picker", "track": "data", "description": "Pick raffle winners.", "recommendedFor": [], "stateDirs": [] },
+    { "name": "video-downloader", "track": "data", "description": "Download videos.", "recommendedFor": [], "stateDirs": [] },
+    { "name": "twitter-algorithm-optimizer", "track": "data", "description": "Optimize tweets for the algorithm.", "recommendedFor": [], "stateDirs": [] }
+  ]
+}

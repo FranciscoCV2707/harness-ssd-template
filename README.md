@@ -43,7 +43,9 @@ variaciones en los proyectos propios `Sistema-Reservas` y `Tracker-Sales-OS`.
   (idempotente).
 - Sustituye `{{PROJECT_NAME}}` y `{{STACK}}` en los archivos recién copiados.
   `[stack]` es opcional; por defecto se usa `"por definir"`.
-- Deja `init.sh` ejecutable (`chmod +x`).
+- Deja `init.sh` ejecutable (`chmod +x`). `init.sh` acepta `--fast` (solo coherencia
+del arnes, sin build/tests) para iteracion rapida y `--full` (por defecto) para
+verificacion completa.
 
 Próximos pasos tras aplicar la plantilla (el script los imprime al terminar):
 
@@ -63,7 +65,7 @@ pending ──────────► spec_ready ─────────
    │  spec_author       │  GATE HUMANO          │  implementer       │  reviewer
    │  escribe            │  aprueba requirements  │  TDD por R-id      │  valida
    │  requirements.md    │  .md (obligatorio)     │  actualiza          │  CHECKPOINTS
-   │                    │                       │  traceability.md   │  C1..C7
+   │                    │                       │  traceability.md   │  C1..C9
 ```
 
 - Ningún agente se auto-aprueba una spec: el humano marca la casilla
@@ -103,12 +105,12 @@ la sincronización entre `STATUS.md` y `feature_list.json`.
 ## Multi-IA
 
 `AGENTS.md` es el **punto de entrada canónico** — cualquier agente (Claude
-Code, Codex CLI, Cursor, Gemini, etc.) empieza por ahí. `CLAUDE.md` es un
+Code, Codex CLI, Cursor, Mistral Vibe, Antigravity, etc.) empieza por ahí. `CLAUDE.md` es un
 wrapper delgado que solo fija el rol `leader` para Claude Code y apunta de
 vuelta a `AGENTS.md`.
 
 Para integrar otra herramienta que requiera su propio archivo de entrada
-(`GEMINI.md`, `.cursorrules`, etc.), cópialo o enlázalo (symlink) como puntero
+(`.cursorrules`, etc.), cópialo o enlázalo (symlink) como puntero
 a `AGENTS.md` — el contenido normativo no se duplica, vive en un solo lugar.
 
 ---
@@ -168,3 +170,40 @@ Añade las skills reales del proyecto siguiendo ese patrón.
   demás en la plantilla es contenido real, listo para usar o adaptar.
 
 ---
+
+---
+
+## Contexto, tokens y multi-CLI
+
+- **Model routing**: el lider siempre es Claude Opus con effort medium; los
+  workers usan modelos mas baratos segun el rol (ver 	emplate/AGENTS.md §9 y
+  	emplate/.opencode/opencode.json). Subagentes declaran su modelo en el
+  frontmatter de .claude/agents/*.md.
+- **Reduccion de tokens**: reglas criticas en system prompt, MCPs de navegacion
+  (codebase-memory-mcp, context-mode, 	oken-savior, Semble, headroom),
+  prompt caching y compaction explicita. Detalle en 	emplate/docs/mcp.md y la
+  skill context-pruning.
+- **Multi-CLI**: ademas de CLAUDE.md, se incluye .cursorrules como puntero
+  a AGENTS.md, mas .opencode/opencode.json para OpenCode. No se duplica
+  contenido normativo. (Gemini ya no se soporta.)
+- **Modo rapido**: ./init.sh --fast para iteracion sin build/tests.
+
+
+
+---
+
+## Multi-CLI y memoria compartida
+
+- Soporta KiloCode, OpenCode, Claude, Codex, Mistral Vibe, Antigravity, Cursor y
+  y Antigravity con un unico `AGENTS.md` canonico. Ver `template/docs/multi-cli.md`.
+- Memoria compartida en disco: `memory/` + `progress/` + `specs/`; todas las
+  IAs leen/escriben ahi. MCP de memoria compartido (codebase-memory-mcp /
+  OpenViking) opcional.
+- Graphify (`/graphify`) genera `graphify-out/` para entender el codebase sin
+  re-explorar; regenerar tras cambios estructurales. Artefacto local (gitignore).
+
+---
+
+## Interfaz grafica
+
+- gui/harness_gui.py + gui.sh / gui.bat: interfaz web sencilla (Node, sin dependencias) para ver features, cambiar estado, ejecutar init.sh --fast/--full, abrir specs y ver memory/ y progress/. Requiere Node.js. Abre gui/index.html o ejecuta gui.sh/gui.bat.

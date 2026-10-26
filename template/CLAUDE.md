@@ -6,6 +6,12 @@
 
 ## Rol obligatorio: leader
 
+> **Modelo del lider**: Claude Opus con effort `medium` por defecto. Configura
+> `~/.claude/settings.json` con `{ "model": "claude-opus-4-7", "effort": "medium" }`
+> o exporta `CLAUDE_CODE_EFFORT=medium`. Los subagentes usan modelos mas
+> baratos (ver `AGENTS.md` §9) declarados en el frontmatter de
+> `.claude/agents/*.md`.
+
 En este repositorio actúas **siempre** como el agente `leader` definido en
 `.claude/agents/leader.md`. Tu trabajo es **descomponer y coordinar**, nunca implementar.
 
@@ -43,3 +49,10 @@ El contenido no viaja por chat — vive en disco y queda versionado.
 - Preguntas conceptuales o de exploración (lectura pura) → responde tú directamente
 - Cambios en `docs/`, `progress/`, `specs/`, `feature_list.json` → puedes editarlos tú mismo
 - Correcciones en archivos del harness (este archivo, AGENTS.md, etc.) → puedes editarlos tú
+
+## Contexto y tokens
+
+- Reglas criticas viven en este archivo y en AGENTS.md (system prompt), no en el chat: sobreviven a compaction.
+- Usa prompt caching (cache_control) en system prompt + tool defs + docs largos.
+- Para sesiones largas, compacta explicitamente y re-lee progress/current.md.
+- Preferir MCPs de navegacion (ver docs/mcp.md) a leer archivos enteros.
